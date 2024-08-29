@@ -16,7 +16,8 @@ from midas.midas_net import MidasNet
 from midas.midas_net_custom import MidasNet_small
 from midas.transforms import Resize, NormalizeImage, PrepareForNet
 
-def read_raw_image(path):
+
+def read_raw_image(path:str):
     """Read image and output RGB image (0-1).
 
     Args:
@@ -35,7 +36,7 @@ def read_raw_image(path):
 
     return img
 
-def run_midas(input_path, output_path, model_path, model_type="large", optimize=True):
+def run_midas(input_path:str, output_path:str, model_path:str, model_type:str="large", optimize:bool=True):
     """Run MonoDepthNN to compute depth maps.
 
     Args:
@@ -44,15 +45,8 @@ def run_midas(input_path, output_path, model_path, model_type="large", optimize=
         model_path (str): path to saved model
     """
     print("initialize")
-
     # select device
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    if torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
-    print("device: %s" % device)
+    device=torch.device(device="cuda" if torch.cuda.is_available() else "cpu")
 
     # load network
     if model_type == "dpt_large": # DPT-Large

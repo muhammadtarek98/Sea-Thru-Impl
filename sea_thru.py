@@ -38,7 +38,7 @@ import matplotlib
 
 from midas_helper import run_midas
 
-lib = np.ctypeslib.load_library('sillu','.')
+lib = np.ctypeslib.load_library(libname='sillu',loader_path='.')
 
 matplotlib.use('TkAgg')
 
