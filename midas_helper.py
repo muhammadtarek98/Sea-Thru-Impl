@@ -1,15 +1,10 @@
-# This file is modified from https://github.com/isl-org/MiDaS
-# to provide an interface for sea-thru implementation
-
 import os
 import glob
 import torch
 import utils
-import rawpy
 import numpy as np
 import cv2
 import argparse
-
 from torchvision.transforms import Compose
 from midas.dpt_depth import DPTDepthModel
 from midas.midas_net import MidasNet
@@ -108,33 +103,22 @@ def run_midas(input_path:str, output_path:str, model_path:str, model_type:str="l
         # model(rand_example)
         # traced_script_module = torch.jit.trace(model, rand_example)
         # model = traced_script_module
-    
         if device == torch.device("cuda"):
             model = model.to(memory_format=torch.channels_last)  
             model = model.half()
-
     model.to(device)
-
     # get input
     # img_names = glob.glob(os.path.join(input_path, "*"))
     img_names = [input_path]
     num_images = len(img_names)
-
     # create output folder
     os.makedirs(output_path, exist_ok=True)
-
     print("start processing")
-
     for ind, img_name in enumerate(img_names):
-
         print("  processing {} ({}/{})".format(img_name, ind + 1, num_images))
-
         # input
-
         img = read_raw_image(img_name)
-        
         img_input = transform({"image": img})["image"]
-
         # compute
         with torch.no_grad():
             sample = torch.from_numpy(img_input).to(device).unsqueeze(0)
@@ -153,7 +137,6 @@ def run_midas(input_path:str, output_path:str, model_path:str, model_type:str="l
                 .cpu()
                 .numpy()
             )
-
         # output
         filename = os.path.join(
             output_path, os.path.splitext(os.path.basename(img_name))[0]
@@ -161,43 +144,34 @@ def run_midas(input_path:str, output_path:str, model_path:str, model_type:str="l
         utils.write_depth(filename, prediction, bits=2)
         print("finished")
         return np.float64(prediction)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
     parser.add_argument('-i', '--input_path', 
         default='input',
         help='folder with input images'
     )
-
     parser.add_argument('-o', '--output_path', 
         default='output',
         help='folder for output images'
     )
-
-    parser.add_argument('-m', '--model_weights', 
+    parser.add_argument('-m', '--model_weights',
         default=None,
         help='path to the trained weights of model'
     )
-
     parser.add_argument('-t', '--model_type', 
         default='dpt_large',
         help='model type: dpt_large, dpt_hybrid, midas_v21_large or midas_v21_small'
     )
-
     parser.add_argument('--optimize', dest='optimize', action='store_true')
     parser.add_argument('--no-optimize', dest='optimize', action='store_false')
     parser.set_defaults(optimize=True)
-
     args = parser.parse_args()
-
     default_models = {
         "midas_v21_small": "weights/midas_v21_small-70d6b9c8.pt",
         "midas_v21": "weights/midas_v21-f6b98070.pt",
         "dpt_large": "weights/dpt_large-midas-2f21e586.pt",
         "dpt_hybrid": "weights/dpt_hybrid-midas-501f0c75.pt",
     }
-
     if args.model_weights is None:
         args.model_weights = default_models[args.model_type]
 
